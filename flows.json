@@ -878,6 +878,7 @@
         "g": "94ca764ef2760841",
         "name": "common - ui - control",
         "links": [
+            "49c0dc7986ce528e",
             "1ec85519e32a82ad"
         ],
         "x": 145,
@@ -2137,7 +2138,7 @@
         "group": "e185630021805b49",
         "label": "",
         "order": 2,
-        "width": "8",
+        "width": "12",
         "height": 0,
         "maxrows": 20,
         "passthru": false,
@@ -2258,7 +2259,7 @@
         "group": "e185630021805b49",
         "label": "Nouvel appareil",
         "order": 1,
-        "width": "2",
+        "width": "3",
         "height": "1",
         "emulateClick": false,
         "tooltip": "",
@@ -2315,12 +2316,13 @@
             "9076341930fcfbfb",
             "220d4bdd88d84763",
             "e8aeb7dd4303feed",
+            "49c0dc7986ce528e",
             "7546a91412581734"
         ],
         "x": 74,
         "y": 1720,
         "w": 872,
-        "h": 621
+        "h": 681
     },
     {
         "type": "link in",
@@ -2346,8 +2348,8 @@
     {
         "type": "function",
         "name": "edit",
-        "func": "\n// Appareils page: edition of an Alexa device\n// input topic: load (row of the devices table), new, type, source, add (entity uid),\n//     remove (row of the entities table), save (form), delete, other: render\n// output 1: title / output 2: form / output 3: type selector / output 4: entities table\n// output 5: source selector / output 6: entity selector / output 7: delete button\n// output 8: notification / output 9: refresh of the devices table / output 10: send device state\n\n// DKNR entity usable by an Alexa device type\nfunction compatible(type, def) {\n    if (typeof def !== 'object' || def === null) {\n\n        return false;\n    }\n    switch (type) {\n        case 'switch':\n        case 'blinds':\n\n            return def.type === 'binary' || def.type === 'number';\n        case 'contact':\n        case 'motion':\n\n            return def.type === 'binary';\n        case 'temperature':\n\n            return def.type === 'number';\n    }\n\n    return false;\n}\n\n// DKNR entity names: source / parent / entity\nfunction entityNames(catalog, uid) {\n    const path = String(uid).split('/');\n    const def = (catalog.entities || {})[uid];\n\n    return {\n        'source': (catalog.sources || {})[path[0]] || path[0] || '',\n        'parent': (catalog.parents || {})[path[0] + '/' + path[1]] || path[1] || '',\n        'entity': def ? def.name : (path[2] || ''),\n        'unit': def ? def.unit : '',\n        'known': def !== undefined\n    };\n}\n\n// DKNR entity readable name: parent / entity\nfunction entityLabel(catalog, uid) {\n    const n = entityNames(catalog, uid);\n\n    return n.parent + ' / ' + n.entity + (n.known ? '' : ' (introuvable)');\n}\n\n// DKNR value with its unit\nfunction entityValue(catalog, uid) {\n    const def = (catalog.entities || {})[uid] || {};\n    const value = (catalog.values || {})[uid];\n    if (value === undefined || value === null || value === '') {\n\n        return '';\n    }\n    if (typeof def.options === 'object' && def.options !== null && def.options[value] !== undefined) {\n\n        return String(def.options[value]);\n    }\n    if (def.type === 'binary') {\n        const on = [true, 1, '1', 'true', 'ON', 'on'].includes(value);\n\n        return on ? '1' : '0';\n    }\n    const unit = ['', 'rb', 'chex'].includes(def.unit || '') ? '' : ' ' + def.unit;\n\n    return (typeof value === 'object' ? JSON.stringify(value) : String(value)) + unit;\n}\n\nlet devices = global.get('devices', 'default') || {};\nconst catalog = global.get('catalog', 'memoryOnly') || { 'sources': {}, 'parents': {}, 'entities': {}, 'values': {} };\nconst alexa = global.get('describe.alexa', 'memoryOnly') || {};\nconst types = alexa.types || {};\n\nconst empty = () => ({ 'id': '', 'name': '', 'room': '', 'type': 'switch', 'entities': [], 'active': true, 'source': '', 'confirm': false });\n\nlet edit = flow.get('edit', 'memoryOnly');\nif (typeof edit !== 'object' || edit === null) {\n    edit = empty();\n}\n\nlet out = [null, null, null, null, null, null, null, null, null, null];\nlet full = false;\nconst notify = text => {\n    out[7] = { 'payload': text };\n};\n\nfunction load(id) {\n    const d = devices[id];\n    edit = empty();\n    if (typeof d === 'object') {\n        edit.id = d.id;\n        edit.name = d.name;\n        edit.room = d.room || '';\n        edit.type = d.type;\n        edit.entities = Array.isArray(d.entities) ? [...d.entities] : [];\n        edit.active = d.active === true;\n        // source of the first entity\n        edit.source = edit.entities.length > 0 ? String(edit.entities[0]).split('/')[0] : '';\n    }\n    full = true;\n}\n\nfunction newId() {\n    let id;\n    do {\n        id = Array.from({ 'length': 16 }, () => Math.floor(Math.random() * 16).toString(16)).join('');\n    } while (devices[id] !== undefined || id.startsWith('d0a1e8a0'));\n\n    return id;\n}\n\n// generated tab fields (see custom - generate)\nconst generated = d => d ? JSON.stringify([d.name, d.type, d.active === true && (d.entities || []).length > 0]) : '';\n\nswitch (msg.topic) {\n    case 'load':\n        load(typeof msg.payload === 'object' && msg.payload !== null ? msg.payload.id : String(msg.payload || ''));\n        break;\n\n    case 'new':\n        load('');\n        break;\n\n    case 'type':\n        if (typeof types[msg.payload] === 'object') {\n            edit.type = msg.payload;\n        }\n        edit.confirm = false;\n        break;\n\n    case 'source':\n        edit.source = typeof msg.payload === 'string' ? msg.payload : '';\n        edit.confirm = false;\n        break;\n\n    case 'add':\n        if (typeof msg.payload === 'string' && msg.payload !== '' && !edit.entities.includes(msg.payload)) {\n            edit.entities.push(msg.payload);\n        }\n        edit.confirm = false;\n        break;\n\n    case 'remove':\n        if (typeof msg.payload === 'object' && msg.payload !== null) {\n            edit.entities = edit.entities.filter(uid => uid !== msg.payload.uid);\n        }\n        edit.confirm = false;\n        break;\n\n    case 'save': {\n        const form = typeof msg.payload === 'object' && msg.payload !== null ? msg.payload : {};\n        const name = String(form.name || '').trim().replace(/\\s+/g, ' ');\n        const room = String(form.room || '').trim().replace(/\\s+/g, ' ');\n        const active = form.active === true;\n        edit.confirm = false;\n\n        if (name === '') {\n            notify('Le nom Alexa est obligatoire');\n            break;\n        }\n        if (Object.values(devices).some(d => d.id !== edit.id && String(d.name).toLowerCase() === name.toLowerCase())) {\n            notify('Un autre appareil s\\'appelle déjà « ' + name + ' »');\n            break;\n        }\n        const wrong = edit.entities.filter(uid => catalog.entities[uid] !== undefined && !compatible(edit.type, catalog.entities[uid]));\n        if (wrong.length > 0) {\n            notify('Entités incompatibles avec le type ' + types[edit.type].label + ' : ' + wrong.map(uid => entityLabel(catalog, uid)).join(', '));\n            break;\n        }\n        if (active && edit.entities.length === 0) {\n            notify('Un appareil actif doit avoir au moins une entité');\n            break;\n        }\n\n        edit.name = name;\n        edit.room = room;\n        edit.active = active;\n\n        const id = edit.id || newId();\n        const old = devices[id];\n        devices[id] = {\n            'id': id,\n            'name': name,\n            'room': room,\n            'type': edit.type,\n            'entities': [...edit.entities],\n            'active': active,\n            'updated': Date.now()\n        };\n        global.set('devices', devices, 'default');\n        edit.id = id;\n\n        // state of the device given again from its (maybe new) first entity\n        let sent = flow.get('sent', 'memoryOnly') || {};\n        delete sent[id];\n        flow.set('sent', sent, 'memoryOnly');\n        await node.linkcall('custom - map', {}, { 'timeout': 10000 });\n\n        notify('Appareil « ' + name + ' » enregistré' + (generated(old) !== generated(devices[id]) ? ', à appliquer dans la page Connexion' : ''));\n        out[8] = { 'topic': 'saved' };\n        out[9] = { 'resend': true, 'id': id };\n        full = true;\n        break;\n    }\n\n    case 'delete':\n        if (edit.id === '' || typeof devices[edit.id] !== 'object') {\n            break;\n        }\n        if (edit.confirm !== true) {\n            edit.confirm = true;\n            break;\n        }\n        notify('Appareil « ' + devices[edit.id].name + ' » supprimé, à appliquer dans la page Connexion');\n        delete devices[edit.id];\n        global.set('devices', devices, 'default');\n        await node.linkcall('custom - map', {}, { 'timeout': 10000 });\n        load('');\n        out[8] = { 'topic': 'deleted' };\n        break;\n\n    default:\n        // page displayed: reload the device, it may have been changed elsewhere (import, restore)\n        load(edit.id);\n}\n\nflow.set('edit', edit, 'memoryOnly');\n\n// title\nout[0] = { 'payload': edit.id !== '' ? 'Modifier « ' + edit.name + ' »' : 'Nouvel appareil' };\n\n// form and type, only when a device is loaded (keeps what the user is typing)\nif (full) {\n    out[1] = { 'payload': { 'name': edit.name, 'room': edit.room, 'active': edit.active } };\n    out[2] = {\n        'payload': edit.type,\n        'options': Object.keys(types).map(k => ({ 'label': types[k].label, 'value': k }))\n    };\n}\n\n// entities of the device, the first one gives the state\nconst command = edit.type === 'switch' || edit.type === 'blinds';\nconst rows = edit.entities.map((uid, i) => {\n    const n = entityNames(catalog, uid);\n    const def = catalog.entities[uid];\n    let role = i === 0 ? (command ? 'état et ordre' : 'état') : (command ? 'ordre' : 'ignorée');\n    if (!n.known) {\n        role = 'introuvable';\n    } else if (!compatible(edit.type, def)) {\n        role = 'incompatible';\n    }\n\n    return {\n        'uid': uid,\n        'source': n.source,\n        'parent': n.parent,\n        'entity': n.entity,\n        'value': entityValue(catalog, uid),\n        'role': role\n    };\n});\nout[3] = { 'payload': rows, 'class': rows.length > 0 ? '' : 'remove' };\n\n// source selector\nconst sources = Object.keys(catalog.sources || {})\n    .sort((a, b) => String(catalog.sources[a]).localeCompare(String(catalog.sources[b])));\nout[4] = {\n    'payload': edit.source,\n    'options': [{ 'label': '', 'value': '' }].concat(sources.map(s => ({ 'label': catalog.sources[s] + (catalog.sources[s] !== s ? ' (' + s + ')' : ''), 'value': s })))\n};\n\n// entities of the source usable by the device type\nlet options = [];\nif (edit.source !== '') {\n    options = Object.keys(catalog.entities)\n        .filter(uid => uid.startsWith(edit.source + '/') && !edit.entities.includes(uid) && compatible(edit.type, catalog.entities[uid]))\n        .map(uid => {\n            const n = entityNames(catalog, uid);\n            // identifier (parent / entity) to tell apart entities of the same name\n            const id = uid.slice(edit.source.length + 1);\n            const unit = ['', 'rb', 'chex'].includes(n.unit || '') ? '' : ', ' + n.unit;\n\n            return { 'label': n.parent + ' / ' + n.entity + ' (' + id + unit + ')', 'value': uid };\n        })\n        .sort((a, b) => a.label.localeCompare(b.label));\n}\nout[5] = {\n    'payload': '',\n    'options': [{ 'label': '', 'value': '' }].concat(options),\n    'class': edit.source !== '' ? '' : 'remove',\n    'enabled': options.length > 0\n};\n\n// delete button\nout[6] = {\n    'payload': '',\n    'class': edit.id !== '' ? '' : 'remove',\n    'ui_update': { 'label': edit.confirm ? 'Confirmer la suppression' : 'Supprimer l\\'appareil' }\n};\n\nreturn out;\n",
-        "outputs": 10,
+        "func": "\n// Appareils page: edition of an Alexa device\n// input topic: load (row of the devices table), new, type, source, add (entity uid),\n//     remove (row of the entities table), save (form), delete, other: render\n// output 1: title / output 2: form / output 3: type selector / output 4: entities table\n// output 5: source selector / output 6: entity selector / output 7: delete button\n// output 8: notification / output 9: refresh of the devices table / output 10: send device state\n// output 11: dialog of the device (dashboard control, only for the client who asked)\n\n// DKNR entity usable by an Alexa device type\nfunction compatible(type, def) {\n    if (typeof def !== 'object' || def === null) {\n\n        return false;\n    }\n    switch (type) {\n        case 'switch':\n        case 'blinds':\n\n            return def.type === 'binary' || def.type === 'number';\n        case 'contact':\n        case 'motion':\n\n            return def.type === 'binary';\n        case 'temperature':\n\n            return def.type === 'number';\n    }\n\n    return false;\n}\n\n// DKNR entity names: source / parent / entity\nfunction entityNames(catalog, uid) {\n    const path = String(uid).split('/');\n    const def = (catalog.entities || {})[uid];\n\n    return {\n        'source': (catalog.sources || {})[path[0]] || path[0] || '',\n        'parent': (catalog.parents || {})[path[0] + '/' + path[1]] || path[1] || '',\n        'entity': def ? def.name : (path[2] || ''),\n        'unit': def ? def.unit : '',\n        'known': def !== undefined\n    };\n}\n\n// DKNR entity readable name: parent / entity\nfunction entityLabel(catalog, uid) {\n    const n = entityNames(catalog, uid);\n\n    return n.parent + ' / ' + n.entity + (n.known ? '' : ' (introuvable)');\n}\n\n// DKNR value with its unit\nfunction entityValue(catalog, uid) {\n    const def = (catalog.entities || {})[uid] || {};\n    const value = (catalog.values || {})[uid];\n    if (value === undefined || value === null || value === '') {\n\n        return '';\n    }\n    if (typeof def.options === 'object' && def.options !== null && def.options[value] !== undefined) {\n\n        return String(def.options[value]);\n    }\n    if (def.type === 'binary') {\n        const on = [true, 1, '1', 'true', 'ON', 'on'].includes(value);\n\n        return on ? '1' : '0';\n    }\n    const unit = ['', 'rb', 'chex'].includes(def.unit || '') ? '' : ' ' + def.unit;\n\n    return (typeof value === 'object' ? JSON.stringify(value) : String(value)) + unit;\n}\n\nlet devices = global.get('devices', 'default') || {};\nconst catalog = global.get('catalog', 'memoryOnly') || { 'sources': {}, 'parents': {}, 'entities': {}, 'values': {} };\nconst alexa = global.get('describe.alexa', 'memoryOnly') || {};\nconst types = alexa.types || {};\n\nconst empty = () => ({ 'id': '', 'name': '', 'room': '', 'type': 'switch', 'entities': [], 'active': true, 'source': '', 'confirm': false });\n\nlet edit = flow.get('edit', 'memoryOnly');\nif (typeof edit !== 'object' || edit === null) {\n    edit = empty();\n}\n\nlet out = [null, null, null, null, null, null, null, null, null, null, null];\nconst dialog = show => {\n    out[10] = { 'payload': { 'groups': { [show ? 'show' : 'hide']: ['5dd9725753744d84'] } }, '_client': msg._client };\n};\nlet full = false;\nconst notify = text => {\n    out[7] = { 'payload': text };\n};\n\nfunction load(id) {\n    const d = devices[id];\n    edit = empty();\n    if (typeof d === 'object') {\n        edit.id = d.id;\n        edit.name = d.name;\n        edit.room = d.room || '';\n        edit.type = d.type;\n        edit.entities = Array.isArray(d.entities) ? [...d.entities] : [];\n        edit.active = d.active === true;\n        // source of the first entity\n        edit.source = edit.entities.length > 0 ? String(edit.entities[0]).split('/')[0] : '';\n    }\n    full = true;\n}\n\nfunction newId() {\n    let id;\n    do {\n        id = Array.from({ 'length': 16 }, () => Math.floor(Math.random() * 16).toString(16)).join('');\n    } while (devices[id] !== undefined || id.startsWith('d0a1e8a0'));\n\n    return id;\n}\n\n// generated tab fields (see custom - generate)\nconst generated = d => d ? JSON.stringify([d.name, d.type, d.active === true && (d.entities || []).length > 0]) : '';\n\nswitch (msg.topic) {\n    case 'load':\n        load(typeof msg.payload === 'object' && msg.payload !== null ? msg.payload.id : String(msg.payload || ''));\n        dialog(true);\n        break;\n\n    case 'new':\n        load('');\n        dialog(true);\n        break;\n\n    case 'type':\n        if (typeof types[msg.payload] === 'object') {\n            edit.type = msg.payload;\n        }\n        edit.confirm = false;\n        break;\n\n    case 'source':\n        edit.source = typeof msg.payload === 'string' ? msg.payload : '';\n        edit.confirm = false;\n        break;\n\n    case 'add':\n        if (typeof msg.payload === 'string' && msg.payload !== '' && !edit.entities.includes(msg.payload)) {\n            edit.entities.push(msg.payload);\n        }\n        edit.confirm = false;\n        break;\n\n    case 'remove':\n        if (typeof msg.payload === 'object' && msg.payload !== null) {\n            edit.entities = edit.entities.filter(uid => uid !== msg.payload.uid);\n        }\n        edit.confirm = false;\n        break;\n\n    case 'save': {\n        const form = typeof msg.payload === 'object' && msg.payload !== null ? msg.payload : {};\n        const name = String(form.name || '').trim().replace(/\\s+/g, ' ');\n        const room = String(form.room || '').trim().replace(/\\s+/g, ' ');\n        const active = form.active === true;\n        edit.confirm = false;\n\n        if (name === '') {\n            notify('Le nom Alexa est obligatoire');\n            break;\n        }\n        if (Object.values(devices).some(d => d.id !== edit.id && String(d.name).toLowerCase() === name.toLowerCase())) {\n            notify('Un autre appareil s\\'appelle déjà « ' + name + ' »');\n            break;\n        }\n        const wrong = edit.entities.filter(uid => catalog.entities[uid] !== undefined && !compatible(edit.type, catalog.entities[uid]));\n        if (wrong.length > 0) {\n            notify('Entités incompatibles avec le type ' + types[edit.type].label + ' : ' + wrong.map(uid => entityLabel(catalog, uid)).join(', '));\n            break;\n        }\n        if (active && edit.entities.length === 0) {\n            notify('Un appareil actif doit avoir au moins une entité');\n            break;\n        }\n\n        edit.name = name;\n        edit.room = room;\n        edit.active = active;\n\n        const id = edit.id || newId();\n        const old = devices[id];\n        devices[id] = {\n            'id': id,\n            'name': name,\n            'room': room,\n            'type': edit.type,\n            'entities': [...edit.entities],\n            'active': active,\n            'updated': Date.now()\n        };\n        global.set('devices', devices, 'default');\n        edit.id = id;\n\n        // state of the device given again from its (maybe new) first entity\n        let sent = flow.get('sent', 'memoryOnly') || {};\n        delete sent[id];\n        flow.set('sent', sent, 'memoryOnly');\n        await node.linkcall('custom - map', {}, { 'timeout': 10000 });\n\n        notify('Appareil « ' + name + ' » enregistré' + (generated(old) !== generated(devices[id]) ? ', à appliquer dans la page Connexion' : ''));\n        out[8] = { 'topic': 'saved' };\n        out[9] = { 'resend': true, 'id': id };\n        full = true;\n        dialog(false);\n        break;\n    }\n\n    case 'delete':\n        if (edit.id === '' || typeof devices[edit.id] !== 'object') {\n            break;\n        }\n        if (edit.confirm !== true) {\n            edit.confirm = true;\n            break;\n        }\n        notify('Appareil « ' + devices[edit.id].name + ' » supprimé, à appliquer dans la page Connexion');\n        delete devices[edit.id];\n        global.set('devices', devices, 'default');\n        await node.linkcall('custom - map', {}, { 'timeout': 10000 });\n        load('');\n        out[8] = { 'topic': 'deleted' };\n        dialog(false);\n        break;\n\n    default:\n        // page displayed: reload the device, it may have been changed elsewhere (import, restore)\n        load(edit.id);\n}\n\nflow.set('edit', edit, 'memoryOnly');\n\n// title\nout[0] = { 'payload': edit.id !== '' ? 'Modifier « ' + edit.name + ' »' : 'Nouvel appareil' };\n\n// form and type, only when a device is loaded (keeps what the user is typing)\nif (full) {\n    out[1] = { 'payload': { 'name': edit.name, 'room': edit.room, 'active': edit.active } };\n    out[2] = {\n        'payload': edit.type,\n        'options': Object.keys(types).map(k => ({ 'label': types[k].label, 'value': k }))\n    };\n}\n\n// entities of the device, the first one gives the state\nconst command = edit.type === 'switch' || edit.type === 'blinds';\nconst rows = edit.entities.map((uid, i) => {\n    const n = entityNames(catalog, uid);\n    const def = catalog.entities[uid];\n    let role = i === 0 ? (command ? 'état et ordre' : 'état') : (command ? 'ordre' : 'ignorée');\n    if (!n.known) {\n        role = 'introuvable';\n    } else if (!compatible(edit.type, def)) {\n        role = 'incompatible';\n    }\n\n    return {\n        'uid': uid,\n        'source': n.source,\n        'parent': n.parent,\n        'entity': n.entity,\n        'value': entityValue(catalog, uid),\n        'role': role\n    };\n});\nout[3] = { 'payload': rows, 'class': rows.length > 0 ? '' : 'remove' };\n\n// source selector\nconst sources = Object.keys(catalog.sources || {})\n    .sort((a, b) => String(catalog.sources[a]).localeCompare(String(catalog.sources[b])));\nout[4] = {\n    'payload': edit.source,\n    'options': [{ 'label': '', 'value': '' }].concat(sources.map(s => ({ 'label': catalog.sources[s] + (catalog.sources[s] !== s ? ' (' + s + ')' : ''), 'value': s })))\n};\n\n// entities of the source usable by the device type\nlet options = [];\nif (edit.source !== '') {\n    options = Object.keys(catalog.entities)\n        .filter(uid => uid.startsWith(edit.source + '/') && !edit.entities.includes(uid) && compatible(edit.type, catalog.entities[uid]))\n        .map(uid => {\n            const n = entityNames(catalog, uid);\n            // identifier (parent / entity) to tell apart entities of the same name\n            const id = uid.slice(edit.source.length + 1);\n            const unit = ['', 'rb', 'chex'].includes(n.unit || '') ? '' : ', ' + n.unit;\n\n            return { 'label': n.parent + ' / ' + n.entity + ' (' + id + unit + ')', 'value': uid };\n        })\n        .sort((a, b) => a.label.localeCompare(b.label));\n}\nout[5] = {\n    'payload': '',\n    'options': [{ 'label': '', 'value': '' }].concat(options),\n    'class': edit.source !== '' ? '' : 'remove',\n    'enabled': options.length > 0\n};\n\n// delete button\nout[6] = {\n    'payload': '',\n    'class': edit.id !== '' ? '' : 'remove',\n    'ui_update': { 'label': edit.confirm ? 'Confirmer la suppression' : 'Supprimer l\\'appareil' }\n};\n\nreturn out;\n",
+        "outputs": 11,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
@@ -2383,6 +2385,9 @@
             ],
             [
                 "e8aeb7dd4303feed"
+            ],
+            [
+                "49c0dc7986ce528e"
             ]
         ],
         "id": "2d7383a2c673a603",
@@ -2396,7 +2401,7 @@
         "name": "custom - edit - title",
         "group": "5dd9725753744d84",
         "order": 1,
-        "width": "4",
+        "width": "6",
         "height": 0,
         "label": "",
         "format": "{{msg.payload}}",
@@ -2422,7 +2427,7 @@
         "group": "5dd9725753744d84",
         "label": "",
         "order": 6,
-        "width": "4",
+        "width": "6",
         "height": 0,
         "options": [
             {
@@ -2479,7 +2484,7 @@
         "label": "Type",
         "tooltip": "",
         "order": 2,
-        "width": "4",
+        "width": "6",
         "height": "1",
         "passthru": false,
         "multiple": false,
@@ -2515,7 +2520,7 @@
         "group": "5dd9725753744d84",
         "label": "",
         "order": 5,
-        "width": "4",
+        "width": "6",
         "height": 0,
         "maxrows": 0,
         "passthru": false,
@@ -2579,7 +2584,7 @@
         "label": "Source des entités",
         "tooltip": "",
         "order": 3,
-        "width": "4",
+        "width": "6",
         "height": "1",
         "passthru": false,
         "multiple": false,
@@ -2616,7 +2621,7 @@
         "label": "Ajouter une entité",
         "tooltip": "",
         "order": 4,
-        "width": "4",
+        "width": "6",
         "height": "1",
         "passthru": false,
         "multiple": false,
@@ -2652,7 +2657,7 @@
         "group": "5dd9725753744d84",
         "label": "Supprimer l'appareil",
         "order": 7,
-        "width": "4",
+        "width": "6",
         "height": "1",
         "emulateClick": false,
         "tooltip": "",
@@ -2729,6 +2734,20 @@
         "y": 2300
     },
     {
+        "type": "link out",
+        "name": "custom - edit - dialog",
+        "mode": "link",
+        "links": [
+            "300df28f3025dc33"
+        ],
+        "wires": [],
+        "id": "49c0dc7986ce528e",
+        "z": "48135a54600713e8",
+        "g": "b3f12add2c45e3ae",
+        "x": 620,
+        "y": 2360
+    },
+    {
         "type": "change",
         "name": "remove",
         "rules": [
@@ -2780,7 +2799,7 @@
             "3ee9f56dff6407fb"
         ],
         "x": 74,
-        "y": 2380,
+        "y": 2440,
         "w": 1092,
         "h": 321
     },
@@ -2802,7 +2821,7 @@
         "z": "48135a54600713e8",
         "g": "2a03ffe27483e738",
         "x": 180,
-        "y": 2420
+        "y": 2480
     },
     {
         "type": "function",
@@ -2835,7 +2854,7 @@
         "z": "48135a54600713e8",
         "g": "2a03ffe27483e738",
         "x": 400,
-        "y": 2420
+        "y": 2480
     },
     {
         "type": "ui-table",
@@ -2880,7 +2899,7 @@
         "z": "48135a54600713e8",
         "g": "2a03ffe27483e738",
         "x": 620,
-        "y": 2420
+        "y": 2480
     },
     {
         "type": "ui-button",
@@ -2920,7 +2939,7 @@
         "z": "48135a54600713e8",
         "g": "2a03ffe27483e738",
         "x": 620,
-        "y": 2480
+        "y": 2540
     },
     {
         "type": "ui-button",
@@ -2960,7 +2979,7 @@
         "z": "48135a54600713e8",
         "g": "2a03ffe27483e738",
         "x": 620,
-        "y": 2540
+        "y": 2600
     },
     {
         "type": "ui-template",
@@ -2987,7 +3006,7 @@
         "z": "48135a54600713e8",
         "g": "2a03ffe27483e738",
         "x": 620,
-        "y": 2600
+        "y": 2660
     },
     {
         "type": "ui-table",
@@ -3048,7 +3067,7 @@
         "z": "48135a54600713e8",
         "g": "2a03ffe27483e738",
         "x": 620,
-        "y": 2660
+        "y": 2720
     },
     {
         "type": "function",
@@ -3072,7 +3091,7 @@
         "z": "48135a54600713e8",
         "g": "2a03ffe27483e738",
         "x": 840,
-        "y": 2540
+        "y": 2600
     },
     {
         "type": "function",
@@ -3096,7 +3115,7 @@
         "z": "48135a54600713e8",
         "g": "2a03ffe27483e738",
         "x": 840,
-        "y": 2480
+        "y": 2540
     },
     {
         "type": "link out",
@@ -3110,7 +3129,7 @@
         "z": "48135a54600713e8",
         "g": "2a03ffe27483e738",
         "x": 1060,
-        "y": 2480
+        "y": 2540
     },
     {
         "type": "link out",
@@ -3124,7 +3143,7 @@
         "z": "48135a54600713e8",
         "g": "2a03ffe27483e738",
         "x": 1060,
-        "y": 2540
+        "y": 2600
     },
     {
         "id": "f76a4c35ed21e5c8",
@@ -3153,7 +3172,7 @@
             "53e5ed2b4ef0c0e6"
         ],
         "x": 74,
-        "y": 2740,
+        "y": 2800,
         "w": 652,
         "h": 381
     },
@@ -3173,7 +3192,7 @@
         "z": "48135a54600713e8",
         "g": "f76a4c35ed21e5c8",
         "x": 180,
-        "y": 2780
+        "y": 2840
     },
     {
         "type": "change",
@@ -3201,7 +3220,7 @@
         "z": "48135a54600713e8",
         "g": "f76a4c35ed21e5c8",
         "x": 400,
-        "y": 2780
+        "y": 2840
     },
     {
         "type": "ui-text",
@@ -3226,7 +3245,7 @@
         "z": "48135a54600713e8",
         "g": "f76a4c35ed21e5c8",
         "x": 620,
-        "y": 2780
+        "y": 2840
     },
     {
         "type": "ui-button",
@@ -3266,7 +3285,7 @@
         "z": "48135a54600713e8",
         "g": "f76a4c35ed21e5c8",
         "x": 180,
-        "y": 2840
+        "y": 2900
     },
     {
         "type": "function",
@@ -3287,7 +3306,7 @@
         "z": "48135a54600713e8",
         "g": "f76a4c35ed21e5c8",
         "x": 400,
-        "y": 2840
+        "y": 2900
     },
     {
         "type": "link out",
@@ -3301,7 +3320,7 @@
         "z": "48135a54600713e8",
         "g": "f76a4c35ed21e5c8",
         "x": 620,
-        "y": 2840
+        "y": 2900
     },
     {
         "type": "http in",
@@ -3320,7 +3339,7 @@
         "z": "48135a54600713e8",
         "g": "f76a4c35ed21e5c8",
         "x": 180,
-        "y": 2900
+        "y": 2960
     },
     {
         "type": "function",
@@ -3341,7 +3360,7 @@
         "z": "48135a54600713e8",
         "g": "f76a4c35ed21e5c8",
         "x": 400,
-        "y": 2900
+        "y": 2960
     },
     {
         "type": "http response",
@@ -3353,7 +3372,7 @@
         "z": "48135a54600713e8",
         "g": "f76a4c35ed21e5c8",
         "x": 620,
-        "y": 2900
+        "y": 2960
     },
     {
         "type": "ui-file-input",
@@ -3378,7 +3397,7 @@
         "z": "48135a54600713e8",
         "g": "f76a4c35ed21e5c8",
         "x": 180,
-        "y": 2960
+        "y": 3020
     },
     {
         "type": "function",
@@ -3405,7 +3424,7 @@
         "z": "48135a54600713e8",
         "g": "f76a4c35ed21e5c8",
         "x": 400,
-        "y": 2960
+        "y": 3020
     },
     {
         "type": "link out",
@@ -3419,7 +3438,7 @@
         "z": "48135a54600713e8",
         "g": "f76a4c35ed21e5c8",
         "x": 620,
-        "y": 2960
+        "y": 3020
     },
     {
         "type": "link out",
@@ -3434,7 +3453,7 @@
         "z": "48135a54600713e8",
         "g": "f76a4c35ed21e5c8",
         "x": 620,
-        "y": 3020
+        "y": 3080
     },
     {
         "type": "link out",
@@ -3449,7 +3468,7 @@
         "z": "48135a54600713e8",
         "g": "f76a4c35ed21e5c8",
         "x": 620,
-        "y": 3080
+        "y": 3140
     },
     {
         "id": "e4068e28a39917b9",
@@ -3473,7 +3492,7 @@
             "726e1620768b6859"
         ],
         "x": 74,
-        "y": 3160,
+        "y": 3220,
         "w": 652,
         "h": 321
     },
@@ -3494,7 +3513,7 @@
         "z": "48135a54600713e8",
         "g": "e4068e28a39917b9",
         "x": 180,
-        "y": 3200
+        "y": 3260
     },
     {
         "type": "change",
@@ -3522,7 +3541,7 @@
         "z": "48135a54600713e8",
         "g": "e4068e28a39917b9",
         "x": 400,
-        "y": 3200
+        "y": 3260
     },
     {
         "type": "ui-text",
@@ -3547,7 +3566,7 @@
         "z": "48135a54600713e8",
         "g": "e4068e28a39917b9",
         "x": 620,
-        "y": 3200
+        "y": 3260
     },
     {
         "type": "change",
@@ -3582,7 +3601,7 @@
         "z": "48135a54600713e8",
         "g": "e4068e28a39917b9",
         "x": 400,
-        "y": 3260
+        "y": 3320
     },
     {
         "type": "ui-file-input",
@@ -3607,7 +3626,7 @@
         "z": "48135a54600713e8",
         "g": "e4068e28a39917b9",
         "x": 180,
-        "y": 3320
+        "y": 3380
     },
     {
         "type": "function",
@@ -3634,7 +3653,7 @@
         "z": "48135a54600713e8",
         "g": "e4068e28a39917b9",
         "x": 400,
-        "y": 3320
+        "y": 3380
     },
     {
         "type": "ui-table",
@@ -3687,7 +3706,7 @@
         "z": "48135a54600713e8",
         "g": "e4068e28a39917b9",
         "x": 620,
-        "y": 3320
+        "y": 3380
     },
     {
         "type": "link out",
@@ -3701,7 +3720,7 @@
         "z": "48135a54600713e8",
         "g": "e4068e28a39917b9",
         "x": 620,
-        "y": 3380
+        "y": 3440
     },
     {
         "type": "link out",
@@ -3716,7 +3735,7 @@
         "z": "48135a54600713e8",
         "g": "e4068e28a39917b9",
         "x": 620,
-        "y": 3440
+        "y": 3500
     },
     {
         "id": "df7710b4b2c4e55b",
@@ -3911,32 +3930,34 @@
         "disabled": "false"
     },
     {
-        "id": "5dd9725753744d84",
+        "id": "e185630021805b49",
         "type": "ui-group",
-        "name": "Modifier un appareil",
+        "name": "Appareils Alexa",
         "page": "d76eccb028da284f",
-        "width": "4",
+        "width": "12",
         "height": 1,
         "order": 1,
         "showTitle": true,
         "className": "",
         "visible": "true",
         "disabled": "false",
-        "groupType": "default"
+        "groupType": "default",
+        "keepLoaded": false
     },
     {
-        "id": "e185630021805b49",
+        "id": "5dd9725753744d84",
         "type": "ui-group",
-        "name": "Appareils Alexa",
+        "name": "ui - dialog - device",
         "page": "d76eccb028da284f",
-        "width": "8",
+        "width": "6",
         "height": 1,
         "order": 2,
-        "showTitle": true,
+        "showTitle": false,
         "className": "",
         "visible": "true",
         "disabled": "false",
-        "groupType": "default"
+        "groupType": "dialog",
+        "keepLoaded": true
     },
     {
         "id": "5fb8836e011131f5",
@@ -3950,7 +3971,8 @@
         "className": "",
         "visible": "true",
         "disabled": "false",
-        "groupType": "default"
+        "groupType": "default",
+        "keepLoaded": false
     },
     {
         "id": "655558a1fa662801",
@@ -3964,7 +3986,8 @@
         "className": "",
         "visible": "true",
         "disabled": "false",
-        "groupType": "default"
+        "groupType": "default",
+        "keepLoaded": false
     },
     {
         "id": "8e8f94e9aa53d31c",
@@ -3978,7 +4001,8 @@
         "className": "",
         "visible": "true",
         "disabled": "false",
-        "groupType": "default"
+        "groupType": "default",
+        "keepLoaded": false
     },
     {
         "id": "3d9bd5b794b702e6",
@@ -3992,6 +4016,7 @@
         "className": "",
         "visible": "true",
         "disabled": "false",
-        "groupType": "default"
+        "groupType": "default",
+        "keepLoaded": false
     }
 ]

@@ -120,7 +120,7 @@ Première version (novembre 2026), testée localement (Node-RED 5.0.9 en mode pr
 * **Etat renvoyé à Alexa** : après un ordre Alexa, l'état demandé est mémorisé, l'état DKNR n'est renvoyé que s'il diffère (appareil qui n'a pas obéi). Après une application, tous les états sont renvoyés (VSH ne transmet à Alexa que les changements).
 * **Etat de la connexion** : un nœud `status` de l'onglet généré renvoie l'état des nœuds VSH (en ligne, erreur...) vers la page Connexion, l'abonnement est lu par la route d'administration de VSH (`GET /admin/vsh-connection/<id>`).
 * **Import** : les pièces sont devinées depuis les noms (« de la », « du », « des », « de l' »). Zigbee : si l'ancienne entité n'existe pas (ex : `state` d'une ouverture), l'entité habituelle du type (`contact`, `occupancy`, `temperature`...) ou la seule entité compatible de l'appareil. RFXCom : identifiant sans `0x`, `<unité>_command` devient `command<unité>`. Les appareils dont un ancien topic est mal formé dans l'ancien flow sont importés inactifs, à compléter.
-* **Pages** : Appareils (modification et liste), Connexion (Amazon, application, sources DKNR), Configurer (MQTT, sauvegarde, import).
+* **Pages** : Appareils (liste, modification et ajout dans une fenêtre de dialogue), Connexion (Amazon, application, sources DKNR), Configurer (MQTT, sauvegarde, import).
 * VSH plante Node-RED si le certificat fourni par le provisionnement n'est pas un PEM valide (constaté avec un faux serveur seulement).
 
 

@@ -64,9 +64,9 @@ Le bouton **Reconnecter à Amazon** refait la connexion, par exemple si VSH la r
 
 Dans la page **Appareils** :
 
-1. **Nouvel appareil**, ou cliquez sur un appareil de la liste pour le modifier.
-2. Choisissez le **type**, puis une **source** et ajoutez une ou plusieurs **entités** (seules les entités compatibles avec le type sont proposées). Cliquez sur une entité pour la retirer.
-3. Saisissez le **nom Alexa** (celui utilisé à la voix) et la **pièce**, puis **Enregistrer**.
+1. **Nouvel appareil**, ou cliquez sur un appareil de la liste : la fenêtre de modification s'ouvre.
+2. Choisissez le **type**, puis une **source** et ajoutez une ou plusieurs **entités** (seules les entités compatibles avec le type sont proposées, avec leur identifiant entre parenthèses). Cliquez sur une entité pour la retirer.
+3. Saisissez le **nom Alexa** (celui utilisé à la voix) et la **pièce**, puis **Enregistrer** : la fenêtre se ferme.
 
 La pièce sert à classer les appareils : rangez-les aussi dans la même pièce de l'application Alexa (VSH ne transmet pas les pièces).
 
