@@ -121,6 +121,8 @@ Première version (novembre 2026), testée localement (Node-RED 5.0.9 en mode pr
 * **Etat renvoyé à Alexa** : après un ordre Alexa, l'état demandé est mémorisé, l'état DKNR n'est renvoyé que s'il diffère (appareil qui n'a pas obéi). Après une application, tous les états sont renvoyés (VSH ne transmet à Alexa que les changements).
 * **Etat de la connexion** : un nœud `status` de l'onglet généré renvoie l'état des nœuds VSH (en ligne, erreur...) vers la page Connexion, l'abonnement est lu par la route d'administration de VSH (`GET /admin/vsh-connection/<id>`).
 * **Import** d'un ancien export de flow VSH (pièces devinées depuis les noms, anciens topics traduits en entités DKNR) : utilisé pour la migration puis retiré (novembre 2026), la configuration est conservée par la sauvegarde.
+* **Conteneur de développement** : au démarrage, l'onglet n'est pas créé s'il n'existe pas et qu'il n'y a ni appareil actif ni connexion Amazon (rien à générer, le projet reste propre pour le gestionnaire de révision). `DKNR_ALEXA_GENERATE=false` désactive toute génération (démarrage, application, connexion à Amazon).
+* **Onglet supprimé depuis l'éditeur** : les appareils (contexte) sont conservés et l'onglet est recréé au démarrage, mais les identifiants de la connexion Amazon sont supprimés avec le nœud de connexion : refaire la connexion.
 * **Pages** : Appareils (liste, modification et ajout dans une fenêtre de dialogue), Connexion (Amazon, application, sources DKNR), Configurer (MQTT, sauvegarde).
 * VSH plante Node-RED si le certificat fourni par le provisionnement n'est pas un PEM valide (constaté avec un faux serveur seulement).
 

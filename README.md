@@ -96,7 +96,15 @@ Un ordre Alexa est publié sur `dknr/set/<source>/<parent>/<entité>` pour chaqu
 
 ### Node-RED
 
-Les nœuds VSH sont générés dans l'onglet `alexa - devices` par l'API d'administration de Node-RED, à l'application des modifications et au démarrage. Cet onglet n'est pas à modifier ni à commiter : il est reconstruit depuis la configuration. L'identifiant d'un appareil Alexa est celui de son nœud, il ne change jamais.
+Les nœuds VSH sont générés dans l'onglet `alexa - devices` par l'API d'administration de Node-RED, à la connexion à Amazon, à l'application des modifications et au démarrage. Cet onglet n'est pas à modifier ni à commiter : il est reconstruit depuis la configuration. L'identifiant d'un appareil Alexa est celui de son nœud, il ne change jamais.
+
+Les appareils sont enregistrés dans le contexte de Node-RED, pas dans l'onglet : supprimer l'onglet depuis l'éditeur ne les perd pas, il est recréé au démarrage suivant. Mais les identifiants de la connexion Amazon sont supprimés avec lui : il faut alors cliquer à nouveau sur **Connecter à Amazon**.
+
+### Développement
+
+Au démarrage, l'onglet n'est pas créé sur une installation sans appareil actif ni connexion Amazon : un conteneur de développement reste sans modification pour le gestionnaire de révision de Node-RED.
+
+Pour ne jamais générer l'onglet, même avec des appareils de test, ajoutez la variable d'environnement `DKNR_ALEXA_GENERATE: false` au conteneur. L'application des modifications et la connexion à Amazon sont alors désactivées, la page Connexion l'indique.
 
 
 ## A faire
