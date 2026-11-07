@@ -254,12 +254,13 @@
             "e3cb5edb17025dc4",
             "32663593a529de51",
             "17cdd28e1663a861",
-            "488eea67bc026a42"
+            "488eea67bc026a42",
+            "d0a1e8a0000000b3"
         ],
         "x": 144,
         "y": 519,
         "w": 802,
-        "h": 142
+        "h": 202
     },
     {
         "id": "ac03a188cbb52761",
@@ -1929,8 +1930,8 @@
         "z": "48135a54600713e8",
         "g": "41652d5ce5081ecc",
         "name": "state",
-        "func": "\n// DKNR value to Alexa device state\n// input: topic = entity uid, payload = value\n//     or resend = true: send again states of all devices (id = only this device)\n// output: topic = device id, payload = VSH state (dynamic link call to the generated tab)\n\n// development container: no generated tab (see custom - generate)\nif (String(env.get('DKNR_ALEXA_GENERATE') || '').toLowerCase() === 'false') {\n\n    return;\n}\n\n// generated tab not built yet (states are sent again after its generation)\nif (flow.get('generated', 'memoryOnly') !== true) {\n\n    return;\n}\n\n// DKNR value to Alexa (VSH) state, null if the value is not usable\n// binary values are 1 / 0, unit rb is an inverted binary (ex: opening 1 = closed)\nfunction vshState(type, def, value) {\n    def = def || {};\n    const rb = def.unit === 'rb';\n    const on = [true, 1, '1', 'true', 'ON', 'on', 'On'].includes(value);\n    const num = Number.parseFloat(value);\n\n    switch (type) {\n        case 'switch':\n            if (def.type === 'number') {\n\n                return isNaN(num) ? null : { 'powerState': num > 0 ? 'ON' : 'OFF' };\n            }\n\n            return { 'powerState': on !== rb ? 'ON' : 'OFF' };\n        case 'contact':\n        case 'motion': {\n            const detected = def.type === 'number' ? num > 0 : on;\n\n            return { 'detectionState': detected !== rb ? 'DETECTED' : 'NOT_DETECTED' };\n        }\n        case 'temperature':\n\n            return isNaN(num) ? null : { 'temperature': Math.round(num * 10) / 10, 'scale': 'CELSIUS' };\n        case 'blinds': {\n            if (def.type === 'binary') {\n\n                return { 'percentage': on !== rb ? 100 : 0 };\n            }\n            if (isNaN(num)) {\n\n                return null;\n            }\n            // Z-Wave multilevel: 99 is fully open\n            let p = Math.round(num);\n            p = p >= 99 ? 100 : Math.max(0, p);\n\n            return { 'percentage': p };\n        }\n    }\n\n    return null;\n}\n\n// Alexa (VSH) state to readable text\nfunction vshText(type, state) {\n    if (state === null || typeof state !== 'object') {\n\n        return '';\n    }\n    switch (type) {\n        case 'switch':\n\n            return state.powerState === 'ON' ? 'Allumé' : 'Eteint';\n        case 'contact':\n\n            return state.detectionState === 'DETECTED' ? 'Ouvert' : 'Fermé';\n        case 'motion':\n\n            return state.detectionState === 'DETECTED' ? 'Mouvement' : 'Aucun mouvement';\n        case 'temperature':\n\n            return String(state.temperature).replace('.', ',') + ' °C';\n        case 'blinds':\n\n            return state.percentage + ' %';\n    }\n\n    return '';\n}\n\nconst devices = global.get('devices', 'default') || {};\nconst catalog = global.get('catalog', 'memoryOnly') || { 'entities': {}, 'values': {} };\nconst alexa = global.get('describe.alexa', 'memoryOnly') || {};\nconst map = flow.get('map', 'memoryOnly') || {};\n// last values before restart, for sources not retaining their values (see custom - route)\nconst lastValues = global.get('last', 'default') || {};\n\nlet sent = flow.get('sent', 'memoryOnly');\nif (typeof sent !== 'object' || sent === null) {\n    sent = {};\n    flow.set('sent', sent, 'memoryOnly');\n}\n\nlet count = 0;\n\nfunction update(id, force) {\n    const dev = devices[id];\n    if (typeof dev !== 'object' || dev.active !== true || !Array.isArray(dev.entities) || dev.entities.length === 0) {\n\n        return;\n    }\n\n    // state comes from the first entity of the device\n    const uid = dev.entities[0];\n    const value = catalog.values[uid] !== undefined ? catalog.values[uid] : lastValues[uid];\n    if (value === undefined) {\n\n        return;\n    }\n\n    const state = vshState(dev.type, catalog.entities[uid], value);\n    if (state === null) {\n\n        return;\n    }\n\n    const key = JSON.stringify(state);\n    const now = Date.now();\n    const last = sent[id];\n\n    if (!force && typeof last === 'object') {\n        if (dev.type === 'temperature' && typeof last.value === 'number') {\n            // VSH terms of use: limit sensors traffic\n            const delta = Math.abs(state.temperature - last.value);\n            if (delta < 0.05) {\n\n                return;\n            }\n            if (delta < (alexa.temperature_delta || 0.5) && now - last.time < (alexa.temperature_period || 900) * 1000) {\n\n                return;\n            }\n        } else if (last.key === key) {\n\n            return;\n        }\n    }\n\n    sent[id] = {\n        'key': key,\n        'value': dev.type === 'temperature' ? state.temperature : null,\n        'time': now\n    };\n\n    count++;\n    node.send({\n        'topic': id,\n        'payload': state,\n        'target': 'alexa - devices - in'\n    });\n}\n\nif (msg.resend === true) {\n    if (typeof msg.id === 'string' && msg.id !== '') {\n        update(msg.id, true);\n    } else {\n        for (const id in devices) {\n            update(id, true);\n        }\n    }\n    node.status({ 'fill': 'blue', 'shape': 'dot', 'text': 'resend: ' + count });\n\n    return;\n}\n\nfor (const id of map[msg.topic] || []) {\n    update(id, false);\n}\n\nif (count > 0) {\n    node.status({ 'fill': 'green', 'shape': 'dot', 'text': msg.topic + ': ' + msg.payload });\n}\n\nreturn;\n",
-        "outputs": 1,
+        "func": "\n// DKNR value to Alexa device state\n// input: topic = entity uid, payload = value\n//     or resend = true: send again states of all devices (id = only this device)\n// output 1: topic = device id, payload = VSH state (dynamic link call to the generated tab)\n// output 2: refresh of the devices table, at most every 10 seconds\n\n// development container: no generated tab (see custom - generate)\nif (String(env.get('DKNR_ALEXA_GENERATE') || '').toLowerCase() === 'false') {\n\n    return;\n}\n\n// generated tab not built yet (states are sent again after its generation)\nif (flow.get('generated', 'memoryOnly') !== true) {\n\n    return;\n}\n\n// DKNR value to Alexa (VSH) state, null if the value is not usable\n// binary values are 1 / 0, unit rb is an inverted binary (ex: opening 1 = closed)\nfunction vshState(type, def, value) {\n    def = def || {};\n    const rb = def.unit === 'rb';\n    const on = [true, 1, '1', 'true', 'ON', 'on', 'On'].includes(value);\n    const num = Number.parseFloat(value);\n\n    switch (type) {\n        case 'switch':\n            if (def.type === 'number') {\n\n                return isNaN(num) ? null : { 'powerState': num > 0 ? 'ON' : 'OFF' };\n            }\n\n            return { 'powerState': on !== rb ? 'ON' : 'OFF' };\n        case 'contact':\n        case 'motion': {\n            const detected = def.type === 'number' ? num > 0 : on;\n\n            return { 'detectionState': detected !== rb ? 'DETECTED' : 'NOT_DETECTED' };\n        }\n        case 'temperature':\n\n            return isNaN(num) ? null : { 'temperature': Math.round(num * 10) / 10, 'scale': 'CELSIUS' };\n        case 'blinds': {\n            if (def.type === 'binary') {\n\n                return { 'percentage': on !== rb ? 100 : 0 };\n            }\n            if (isNaN(num)) {\n\n                return null;\n            }\n            // Z-Wave multilevel: 99 is fully open\n            let p = Math.round(num);\n            p = p >= 99 ? 100 : Math.max(0, p);\n\n            return { 'percentage': p };\n        }\n    }\n\n    return null;\n}\n\n// Alexa (VSH) state to readable text\nfunction vshText(type, state) {\n    if (state === null || typeof state !== 'object') {\n\n        return '';\n    }\n    switch (type) {\n        case 'switch':\n\n            return state.powerState === 'ON' ? 'Allumé' : 'Eteint';\n        case 'contact':\n\n            return state.detectionState === 'DETECTED' ? 'Ouvert' : 'Fermé';\n        case 'motion':\n\n            return state.detectionState === 'DETECTED' ? 'Mouvement' : 'Aucun mouvement';\n        case 'temperature':\n\n            return String(state.temperature).replace('.', ',') + ' °C';\n        case 'blinds':\n\n            return state.percentage + ' %';\n    }\n\n    return '';\n}\n\nconst devices = global.get('devices', 'default') || {};\nconst catalog = global.get('catalog', 'memoryOnly') || { 'entities': {}, 'values': {} };\nconst alexa = global.get('describe.alexa', 'memoryOnly') || {};\nconst map = flow.get('map', 'memoryOnly') || {};\n// last values before restart, for sources not retaining their values (see custom - route)\nconst lastValues = global.get('last', 'default') || {};\n\nlet sent = flow.get('sent', 'memoryOnly');\nif (typeof sent !== 'object' || sent === null) {\n    sent = {};\n    flow.set('sent', sent, 'memoryOnly');\n}\n\nlet count = 0;\n\nfunction update(id, force) {\n    const dev = devices[id];\n    if (typeof dev !== 'object' || dev.active !== true || !Array.isArray(dev.entities) || dev.entities.length === 0) {\n\n        return;\n    }\n\n    // state comes from the first entity of the device\n    const uid = dev.entities[0];\n    const value = catalog.values[uid] !== undefined ? catalog.values[uid] : lastValues[uid];\n    if (value === undefined) {\n\n        return;\n    }\n\n    const state = vshState(dev.type, catalog.entities[uid], value);\n    if (state === null) {\n\n        return;\n    }\n\n    const key = JSON.stringify(state);\n    const now = Date.now();\n    const last = sent[id];\n\n    if (!force && typeof last === 'object') {\n        if (dev.type === 'temperature' && typeof last.value === 'number') {\n            // VSH terms of use: limit sensors traffic\n            const delta = Math.abs(state.temperature - last.value);\n            if (delta < 0.05) {\n\n                return;\n            }\n            if (delta < (alexa.temperature_delta || 0.5) && now - last.time < (alexa.temperature_period || 900) * 1000) {\n\n                return;\n            }\n        } else if (last.key === key) {\n\n            return;\n        }\n    }\n\n    sent[id] = {\n        'key': key,\n        'value': dev.type === 'temperature' ? state.temperature : null,\n        'time': now\n    };\n\n    count++;\n    node.send([{\n        'topic': id,\n        'payload': state,\n        'target': 'alexa - devices - in'\n    }, null]);\n}\n\n// devices table: one refresh for the changes of the next 10 seconds\nfunction refresh() {\n    if (count === 0 || context.get('refresh') === true) {\n\n        return;\n    }\n    context.set('refresh', true);\n    setTimeout(() => {\n        context.set('refresh', false);\n        node.send([null, { 'topic': 'refresh' }]);\n    }, 10000);\n}\n\nif (msg.resend === true) {\n    if (typeof msg.id === 'string' && msg.id !== '') {\n        update(msg.id, true);\n    } else {\n        for (const id in devices) {\n            update(id, true);\n        }\n    }\n    node.status({ 'fill': 'blue', 'shape': 'dot', 'text': 'resend: ' + count });\n    refresh();\n\n    return;\n}\n\nfor (const id of map[msg.topic] || []) {\n    update(id, false);\n}\n\nif (count > 0) {\n    node.status({ 'fill': 'green', 'shape': 'dot', 'text': msg.topic + ': ' + msg.payload });\n}\nrefresh();\n\nreturn;\n",
+        "outputs": 2,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
@@ -1941,6 +1942,9 @@
         "wires": [
             [
                 "e3cb5edb17025dc4"
+            ],
+            [
+                "d0a1e8a0000000b3"
             ]
         ]
     },
@@ -2433,7 +2437,8 @@
             "d0ee4b417bfa2bb7",
             "ddab942f6d49a661",
             "220d4bdd88d84763",
-            "53e5ed2b4ef0c0e6"
+            "53e5ed2b4ef0c0e6",
+            "d0a1e8a0000000b3"
         ],
         "x": 185,
         "y": 1580,
@@ -3709,6 +3714,20 @@
         ],
         "x": 915,
         "y": 3100,
+        "wires": []
+    },
+    {
+        "id": "d0a1e8a0000000b3",
+        "type": "link out",
+        "z": "48135a54600713e8",
+        "g": "41652d5ce5081ecc",
+        "name": "custom - state - refresh",
+        "mode": "link",
+        "links": [
+            "c4c1c82291420a48"
+        ],
+        "x": 670,
+        "y": 680,
         "wires": []
     }
 ]
