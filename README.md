@@ -85,6 +85,8 @@ L'état d'un appareil Alexa vient de sa première entité (`dknr/get/<source>/<p
 | Température | nombre | °C, au dixième |
 | Volet | nombre (0-99 ou 0-100) ou binaire | pourcentage d'ouverture |
 
+La dernière valeur des entités utilisées est conservée : après un redémarrage ou une mise à jour, les états sont renvoyés à Alexa sans attendre que chaque entité change, même pour les sources qui ne conservent pas leurs valeurs sur le serveur MQTT (ex : RFXCom).
+
 Pour limiter le trafic (conditions d'utilisation de VSH), une température n'est envoyée que si elle change d'au moins 0,5 °C ou toutes les 15 minutes au plus, les autres états seulement s'ils changent.
 
 ### Alexa vers DKNR
