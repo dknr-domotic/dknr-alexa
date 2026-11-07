@@ -2602,7 +2602,7 @@
         "topicType": "str",
         "className": "",
         "typeIsComboBox": true,
-        "msgTrigger": "onChange",
+        "msgTrigger": "onClose",
         "wires": [
             [
                 "2d7383a2c673a603"
@@ -2639,7 +2639,7 @@
         "topicType": "str",
         "className": "",
         "typeIsComboBox": true,
-        "msgTrigger": "onChange",
+        "msgTrigger": "onClose",
         "wires": [
             [
                 "2d7383a2c673a603"
