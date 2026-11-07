@@ -1,0 +1,278 @@
+[
+  {
+    "id": "df7710b4b2c4e55b",
+    "type": "ui-base",
+    "name": "Tableau de bord",
+    "path": "/dashboard",
+    "appIcon": "/icon.png",
+    "includeClientData": true,
+    "acceptsClientConfig": [
+      "ui-notification",
+      "ui-control"
+    ],
+    "showPathInSidebar": false,
+    "headerContent": "none",
+    "navigationStyle": "none",
+    "titleBarStyle": "hidden",
+    "showReconnectNotification": true,
+    "notificationDisplayTime": 1,
+    "showDisconnectNotification": true,
+    "allowInstall": false
+  },
+  {
+    "id": "877e716e64a22cf1",
+    "type": "ui-theme",
+    "name": "Default Theme",
+    "colors": {
+      "surface": "#ffffff",
+      "primary": "#0094CE",
+      "bgPage": "#eeeeee",
+      "groupBg": "#ffffff",
+      "groupOutline": "#cccccc"
+    },
+    "sizes": {
+      "density": "default",
+      "pagePadding": "12px",
+      "groupGap": "12px",
+      "groupBorderRadius": "4px",
+      "widgetGap": "12px"
+    }
+  },
+  {
+    "id": "2c5e094fee5ae877",
+    "type": "mqtt-broker",
+    "name": "MQTT",
+    "broker": "",
+    "port": "1883",
+    "clientid": "dkalexa",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": 4,
+    "keepalive": 60,
+    "cleansession": true,
+    "autoUnsubscribe": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthRetain": "false",
+    "birthPayload": "",
+    "birthMsg": {},
+    "closeTopic": "",
+    "closeQos": "0",
+    "closeRetain": "false",
+    "closePayload": "",
+    "closeMsg": {},
+    "willTopic": "",
+    "willQos": "0",
+    "willRetain": "false",
+    "willPayload": "",
+    "willMsg": {},
+    "userProps": "",
+    "sessionExpiry": ""
+  },
+  {
+    "id": "887b3087f3dda2eb",
+    "type": "ui-page",
+    "name": "mqtt",
+    "ui": "df7710b4b2c4e55b",
+    "path": "/mqtt",
+    "icon": "cog",
+    "layout": "notebook",
+    "theme": "877e716e64a22cf1",
+    "breakpoints": [
+      {
+        "name": "Default",
+        "px": "0",
+        "cols": "3"
+      },
+      {
+        "name": "Tablet",
+        "px": "576",
+        "cols": "6"
+      },
+      {
+        "name": "Small Desktop",
+        "px": "768",
+        "cols": "9"
+      },
+      {
+        "name": "Desktop",
+        "px": "1024",
+        "cols": "12"
+      }
+    ],
+    "order": 3,
+    "className": "",
+    "visible": "true",
+    "disabled": "false"
+  },
+  {
+    "id": "4c116fe2697e0aa9",
+    "type": "ui-group",
+    "name": "Configurer MQTT",
+    "page": "887b3087f3dda2eb",
+    "width": "3",
+    "height": 1,
+    "order": 1,
+    "showTitle": true,
+    "className": "",
+    "visible": "true",
+    "disabled": "false",
+    "groupType": "default"
+  },
+  {
+    "id": "d76eccb028da284f",
+    "type": "ui-page",
+    "name": "alexa",
+    "ui": "df7710b4b2c4e55b",
+    "path": "/",
+    "icon": "account-voice",
+    "layout": "notebook",
+    "theme": "877e716e64a22cf1",
+    "breakpoints": [
+      {
+        "name": "Default",
+        "px": "0",
+        "cols": "3"
+      },
+      {
+        "name": "Tablet",
+        "px": "576",
+        "cols": "6"
+      },
+      {
+        "name": "Small Desktop",
+        "px": "768",
+        "cols": "9"
+      },
+      {
+        "name": "Desktop",
+        "px": "1024",
+        "cols": "12"
+      }
+    ],
+    "order": 1,
+    "className": "",
+    "visible": "true",
+    "disabled": "false"
+  },
+  {
+    "id": "f4f01c3c9ad56184",
+    "type": "ui-page",
+    "name": "network",
+    "ui": "df7710b4b2c4e55b",
+    "path": "/network",
+    "icon": "cloud-outline",
+    "layout": "notebook",
+    "theme": "877e716e64a22cf1",
+    "breakpoints": [
+      {
+        "name": "Default",
+        "px": "0",
+        "cols": "3"
+      },
+      {
+        "name": "Tablet",
+        "px": "576",
+        "cols": "6"
+      },
+      {
+        "name": "Small Desktop",
+        "px": "768",
+        "cols": "9"
+      },
+      {
+        "name": "Desktop",
+        "px": "1024",
+        "cols": "12"
+      }
+    ],
+    "order": 2,
+    "className": "",
+    "visible": "true",
+    "disabled": "false"
+  },
+  {
+    "id": "5dd9725753744d84",
+    "type": "ui-group",
+    "name": "Modifier un appareil",
+    "page": "d76eccb028da284f",
+    "width": "4",
+    "height": 1,
+    "order": 1,
+    "showTitle": true,
+    "className": "",
+    "visible": "true",
+    "disabled": "false",
+    "groupType": "default"
+  },
+  {
+    "id": "e185630021805b49",
+    "type": "ui-group",
+    "name": "Appareils Alexa",
+    "page": "d76eccb028da284f",
+    "width": "8",
+    "height": 1,
+    "order": 2,
+    "showTitle": true,
+    "className": "",
+    "visible": "true",
+    "disabled": "false",
+    "groupType": "default"
+  },
+  {
+    "id": "5fb8836e011131f5",
+    "type": "ui-group",
+    "name": "Amazon Alexa",
+    "page": "f4f01c3c9ad56184",
+    "width": "4",
+    "height": 1,
+    "order": 1,
+    "showTitle": true,
+    "className": "",
+    "visible": "true",
+    "disabled": "false",
+    "groupType": "default"
+  },
+  {
+    "id": "655558a1fa662801",
+    "type": "ui-group",
+    "name": "Sources DKNR",
+    "page": "f4f01c3c9ad56184",
+    "width": "5",
+    "height": 1,
+    "order": 2,
+    "showTitle": true,
+    "className": "",
+    "visible": "true",
+    "disabled": "false",
+    "groupType": "default"
+  },
+  {
+    "id": "8e8f94e9aa53d31c",
+    "type": "ui-group",
+    "name": "Sauvegarde",
+    "page": "887b3087f3dda2eb",
+    "width": "3",
+    "height": 1,
+    "order": 2,
+    "showTitle": true,
+    "className": "",
+    "visible": "true",
+    "disabled": "false",
+    "groupType": "default"
+  },
+  {
+    "id": "3d9bd5b794b702e6",
+    "type": "ui-group",
+    "name": "Importer un ancien flow VSH",
+    "page": "887b3087f3dda2eb",
+    "width": "6",
+    "height": 1,
+    "order": 3,
+    "showTitle": true,
+    "className": "",
+    "visible": "true",
+    "disabled": "false",
+    "groupType": "default"
+  }
+]

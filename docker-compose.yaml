@@ -1,0 +1,47 @@
+# DKNR Alexa
+#
+# Required the following environement variables:
+# - DKNR_USERNAME
+# - DKNR_PASSWORD
+# - DKNR_SECRET (also encrypts the Amazon connection: changing it requires a new connection to Amazon)
+#
+# DKNR Alexa must use the same MQTT server as the other DKNR projects: set it in the "Configurer" page.
+# DKNR Alexa: http://<docker host>, Node-RED editor: http://<docker host>/admin
+# Only outgoing connections are needed (Amazon and Virtual Smart Home servers), no incoming port from internet.
+#
+name: DKNRAlexa
+
+services:
+  dknr_alexa:
+    container_name: dknr_alexa
+    image: jcpd/dknr-alexa:latest
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+    environment:
+      TZ: Europe/Paris
+      DKNR_USERNAME: ${DKNR_USERNAME}
+      DKNR_PASSWORD: ${DKNR_PASSWORD}
+      DKNR_SECRET: ${DKNR_SECRET}
+    ports:
+      # change the first port if port 80 is already used on this host
+      - 80:1880
+    volumes:
+      - dknr_alexa:/data
+    healthcheck:
+      test: timeout 10s bash -c ':> /dev/tcp/127.0.0.1/1880' || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+volumes:
+  dknr_alexa:
