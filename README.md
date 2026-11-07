@@ -18,7 +18,6 @@
 - **Appareils groupés** : un appareil Alexa peut piloter plusieurs entités (ex : « guirlande » = deux prises).
 - **Pilotage vocal** : « Alexa, allume la lumière de l'atelier », « Alexa, ouvre le volet de la véranda », routines Alexa sur les ouvertures, mouvements et températures.
 - **Connexion à Amazon depuis le tableau de bord**, sans passer par l'éditeur Node-RED.
-- **Import d'un ancien flow VSH** pour reprendre noms et types des appareils.
 - **Sauvegarde et restauration** de la configuration.
 
 
@@ -71,19 +70,6 @@ Dans la page **Appareils** :
 La pièce sert à classer les appareils : rangez-les aussi dans la même pièce de l'application Alexa (VSH ne transmet pas les pièces).
 
 Les entités d'un appareil sont prises en compte dès l'enregistrement. Un nouvel appareil, un changement de nom ou de type, une activation ou une suppression sont envoyés à Alexa avec le bouton **Appliquer les modifications** de la page **Connexion** (la connexion à Amazon redémarre). Un appareil supprimé ou désactivé disparaît d'Alexa.
-
-### Importer un ancien flow VSH
-
-Dans la page **Configurer**, importez le fichier d'export du flow contenant les anciens nœuds VSH. Les noms et types sont repris, la pièce est devinée depuis le nom (« lumière de la véranda » : « véranda ») et les anciens topics sont traduits en entités DKNR :
-
-* Z-Wave : `zwave_5_37_0_currentValue` : `zwave/5/37_0_currentValue`.
-* Zigbee : `zigbee_Garage_Prise_state` : appareil Zigbee nommé `Garage_Prise`, entité `state` (ou l'entité habituelle du type, ex : `contact` pour une ouverture).
-* RFXCom : `rfxcom_0x5C02_temperature` : `rfxcom/5C02/temperature`, `rfxcom_0x00A1B2C3_1_command` : `rfxcom/00A1B2C3/command1`.
-* Appareils groupés : les topics trouvés dans la fonction qui utilisait l'ancien topic.
-* Scène : interrupteur sur les entités `state` des unités Daikin.
-
-Le rapport d'import indique pour chaque appareil le résultat. Les appareils dont une entité est introuvable sont importés inactifs, à compléter dans la page **Appareils**. Les appareils sont nouveaux pour Alexa : supprimez les anciens dans l'application Alexa et refaites pièces, groupes et routines.
-
 
 ## Fonctionnement
 

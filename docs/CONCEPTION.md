@@ -45,7 +45,6 @@ Partager vers et depuis Amazon Alexa les entités gérées par les projets DKNR,
 * Liste des appareils Alexa : nom, pièce, type, entités DKNR associées (une ou plusieurs), actif ou non.
 * Choix des entités par source (sélecteur de source, comme la page Entités de dknr-domotic, la liste complète est trop longue).
 * État de la connexion VSH et bouton de connexion à Amazon.
-* Import d'un ancien export de flow VSH pour pré-remplir noms et types (voir *Migration*).
 * Sauvegarde et restauration de la configuration, comme dans les autres projets.
 
 ### Génération des nœuds VSH
@@ -86,6 +85,8 @@ Une même connexion ne doit pas tourner sur deux installations à la fois : arr�
 
 ## Migration depuis l'ancienne domotique
 
+Migration faite en novembre 2026 avec un import temporaire (retiré depuis), la configuration est conservée par la sauvegarde de la page Configurer.
+
 L'ancien flow VSH comptait 85 appareils (29 `SWITCH`, 26 `CONTACT_SENSOR`, 18 `TEMPERATURE_SENSOR`, 9 `MOTION_SENSOR`, 2 `BLINDS`, 1 `SCENE`). Son export n'est pas dans le dépôt (noms privés), il faudra le fournir à nouveau. Correspondance des anciens topics vers les identifiants DKNR :
 
 * Z-Wave : `zwave_14_37_1_currentValue` → `zwave/14/37_1_currentValue`.
@@ -119,8 +120,8 @@ Première version (novembre 2026), testée localement (Node-RED 5.0.9 en mode pr
 * **Volets** : le pourcentage demandé est envoyé avec `99` au plus, une valeur reçue de `99` ou plus vaut `100` pour Alexa.
 * **Etat renvoyé à Alexa** : après un ordre Alexa, l'état demandé est mémorisé, l'état DKNR n'est renvoyé que s'il diffère (appareil qui n'a pas obéi). Après une application, tous les états sont renvoyés (VSH ne transmet à Alexa que les changements).
 * **Etat de la connexion** : un nœud `status` de l'onglet généré renvoie l'état des nœuds VSH (en ligne, erreur...) vers la page Connexion, l'abonnement est lu par la route d'administration de VSH (`GET /admin/vsh-connection/<id>`).
-* **Import** : les pièces sont devinées depuis les noms (« de la », « du », « des », « de l' »). Zigbee : si l'ancienne entité n'existe pas (ex : `state` d'une ouverture), l'entité habituelle du type (`contact`, `occupancy`, `temperature`...) ou la seule entité compatible de l'appareil. RFXCom : identifiant sans `0x`, `<unité>_command` devient `command<unité>`. Les appareils dont un ancien topic est mal formé dans l'ancien flow sont importés inactifs, à compléter.
-* **Pages** : Appareils (liste, modification et ajout dans une fenêtre de dialogue), Connexion (Amazon, application, sources DKNR), Configurer (MQTT, sauvegarde, import).
+* **Import** d'un ancien export de flow VSH (pièces devinées depuis les noms, anciens topics traduits en entités DKNR) : utilisé pour la migration puis retiré (novembre 2026), la configuration est conservée par la sauvegarde.
+* **Pages** : Appareils (liste, modification et ajout dans une fenêtre de dialogue), Connexion (Amazon, application, sources DKNR), Configurer (MQTT, sauvegarde).
 * VSH plante Node-RED si le certificat fourni par le provisionnement n'est pas un PEM valide (constaté avec un faux serveur seulement).
 
 
