@@ -2,8 +2,8 @@
 
 [![Release](https://img.shields.io/docker/v/jcpd/dknr-alexa?sort=semver)](https://img.shields.io/docker/v/jcpd/dknr-alexa?sort=semver)
 [![Pull](https://img.shields.io/docker/pulls/jcpd/dknr-alexa)](https://img.shields.io/docker/pulls/jcpd/dknr-alexa)
-[![Issue](https://img.shields.io/github/issues/jcdenis/dknr-alexa)](https://img.shields.io/github/issues/jcdenis/dknr-alexa)
-[![License](https://img.shields.io/github/license/jcdenis/dknr-alexa)](https://github.com/JcDenis/dknr-alexa/blob/master/LICENSE)
+[![Issue](https://img.shields.io/github/issues/dknr-domotic/dknr-alexa)](https://img.shields.io/github/issues/dknr-domotic/dknr-alexa)
+[![License](https://img.shields.io/github/license/dknr-domotic/dknr-alexa)](https://github.com/dknr-domotic/dknr-alexa/blob/master/LICENSE)
 
 
 ## A propos
@@ -24,7 +24,7 @@
 ## Matériel requis
 
 * un serveur MQTT, partagé avec les autres projets DKNR.
-* au moins un projet DKNR publiant des entités (ex : [DKNR Zigbee](https://github.com/JcDenis/dknr-zigbee)).
+* au moins un projet DKNR publiant des entités (ex : [DKNR Zigbee](https://github.com/dknr-domotic/dknr-zigbee)).
 * un compte Amazon avec des appareils Echo et un abonnement [Virtual Smart Home](https://github.com/csuermann/node-red-contrib-virtual-smart-home) (PRO : 200 appareils).
 * une machine exécutant le logiciel docker, avec un accès sortant à internet.
 
@@ -117,14 +117,14 @@ Pour ne jamais générer l'onglet, même avec des appareils de test, ajoutez la 
 
 ## Contribuer
 
-Ce projet est **open-source**, vous pouvez participer en créant des [tickets](https://github.com/JcDenis/dknr-alexa/issues) ou en proposant de [requêtes](https://github.com/JcDenis/dknr-alexa/pulls) sur le dépôt github du projet.
+Ce projet est **open-source**, vous pouvez participer en créant des [tickets](https://github.com/dknr-domotic/dknr-alexa/issues) ou en proposant de [requêtes](https://github.com/dknr-domotic/dknr-alexa/pulls) sur le dépôt github du projet.
 
 
 ## Voir aussi
 
-- [DKNR Domotic](https://github.com/JcDenis/dknr-domotic)
-- [DKNR Zigbee](https://github.com/JcDenis/dknr-zigbee)
-- [DKNR Z-Wave](https://github.com/JcDenis/dknr-zwave)
-- [DKNR RFXCom](https://github.com/JcDenis/dknr-rfxcom)
-- [DKNR Daikin](https://github.com/JcDenis/dknr-daikin)
+- [DKNR Domotic](https://github.com/dknr-domotic/dknr-domotic)
+- [DKNR Zigbee](https://github.com/dknr-domotic/dknr-zigbee)
+- [DKNR Z-Wave](https://github.com/dknr-domotic/dknr-zwave)
+- [DKNR RFXCom](https://github.com/dknr-domotic/dknr-rfxcom)
+- [DKNR Daikin](https://github.com/dknr-domotic/dknr-daikin)
 - [Virtual Smart Home](https://github.com/csuermann/node-red-contrib-virtual-smart-home)

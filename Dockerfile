@@ -9,13 +9,13 @@ USER root
 ENV DKNR_USERNAME=admin \
       DKNR_PASSWORD=admin \
       DKNR_SECRET=dkalexa \
-      DKNR_REPOSITORY=https://github.com/JcDenis/dknr-alexa \
+      DKNR_REPOSITORY=https://github.com/dknr-domotic/dknr-alexa \
       NODE_RED_ENABLE_PROJECTS=true \
       TZ=Europe/Paris
 
 # Image label
 LABEL org.opencontainers.image.authors="Jean-Christian Paul Denis" \
-      org.opencontainers.image.source="https://github.com/JcDenis/dknr-alexa" \
+      org.opencontainers.image.source="https://github.com/dknr-domotic/dknr-alexa" \
       org.opencontainers.image.title="DKNR Alexa" \
       org.opencontainers.image.description="DKNR MQTT entities to and from Amazon Alexa with web UI" \
       org.opencontainers.image.licenses="AGPL-3.0"
