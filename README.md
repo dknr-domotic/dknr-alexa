@@ -10,6 +10,8 @@
 
 **dknr-alexa** partage vers et depuis Amazon Alexa les entités publiées sur MQTT par les autres projets DKNR (Zigbee, Z-Wave, RFXCom, Daikin...). Les appareils Alexa sont choisis et nommés depuis le tableau de bord, sans configurer un nœud Node-RED par appareil. Le lien avec Alexa passe par [Virtual Smart Home](https://github.com/csuermann/node-red-contrib-virtual-smart-home) (VSH) : aucune connexion entrante depuis internet n'est nécessaire.
 
+La documentation détaillée est sur [dknr-domotic.github.io](https://dknr-domotic.github.io/integrations/alexa/).
+
 
 ## Fonctionnalités
 
