@@ -3,7 +3,7 @@
     "description": "DKNR Alexa",
     "version": "1.1",
     "dependencies": {
-        "@flowfuse/node-red-dashboard": "1.36.0",
+        "@flowfuse/node-red-dashboard": "1.36.1",
         "node-red-contrib-virtual-smart-home": "4.5.2"
     },
     "node-red": {
