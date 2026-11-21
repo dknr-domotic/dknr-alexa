@@ -28,7 +28,7 @@ Partager vers et depuis Amazon Alexa les entités gérées par les projets DKNR,
   | volet | `BLINDS` | `percentage` (0-100) |
 
   Pas d'humidité (VSH n'a pas de capteur d'humidité), pas de scène (la clim passe par l'interrupteur Daikin).
-* **Variateurs** : un ordre Alexa « allume » envoie `99` sur `dknr/set` pour une entité en `%`, `1` pour un binaire. Les scènes de dknr-domotic corrigent ensuite le niveau (latence et léger scintillement acceptés).
+* **Variateurs** : un ordre Alexa « allume » envoie `100` sur `dknr/set` pour une entité en `%`, `1` pour un binaire. Les scènes de dknr-domotic corrigent ensuite le niveau (latence et léger scintillement acceptés).
 * **Appareils groupés** : un appareil Alexa peut regrouper plusieurs entités DKNR (ex : « lumière leds » = leds gauche + leds droite). Un ordre est envoyé à toutes, l'état vient de la première.
 
 
@@ -116,8 +116,8 @@ Première version (novembre 2026), testée localement (Node-RED 5.0.9 en mode pr
 * **Application des modifications par un bouton** (page Connexion) et non à chaque enregistrement : régénérer l'onglet redémarre la connexion Amazon, à éviter 85 fois pendant la mise en place. Seuls les ajouts, suppressions, changements de nom, de type ou d'activation le demandent, les entités d'un appareil sont prises en compte dès l'enregistrement. L'onglet n'est pas réécrit s'il est déjà à jour (démarrage, bouton sans changement).
 * **Identifiant de l'onglet généré** : `POST /flow` ignore l'identifiant fourni et en attribue un nouveau. L'onglet est retrouvé par l'identifiant fixe de son nœud `link in` (`d0a1e8a0000000a1`), les identifiants des nœuds, eux, sont conservés.
 * **Identifiants Amazon** : `PUT /flow/:id` sans `credentials` conserve ceux déjà enregistrés (et les fusionne s'ils sont fournis), l'appairage envoie donc les 9 champs. Ils survivent aussi à un `flows.json` sans l'onglet (dépôt fraîchement cloné) : l'onglet recréé au démarrage reprend la connexion. Pour qu'ils soient bien chiffrés avec `DKNR_SECRET`, `data/.config.projects.json` déclare le projet `dknr-alexa` avec ce secret (remplacé par `docker-entrypoint.sh`), contrairement aux autres dépôts dknr. Changer `DKNR_SECRET` impose de refaire la connexion.
-* **Variateurs** : « allume » n'envoie pas `99` à une entité déjà allumée, son niveau est conservé.
-* **Volets** : le pourcentage demandé est envoyé avec `99` au plus, une valeur reçue de `99` ou plus vaut `100` pour Alexa.
+* **Variateurs** : « allume » n'envoie pas `100` à une entité déjà allumée, son niveau est conservé.
+* **Volets** : le pourcentage demandé est envoyé tel quel, de 0 à 100. Les niveaux DKNR vont de 0 à 100 : chaque source convertit les siens (dknr-zwave publie 0-99 en 0-100).
 * **Etat renvoyé à Alexa** : après un ordre Alexa, l'état demandé est mémorisé, l'état DKNR n'est renvoyé que s'il diffère (appareil qui n'a pas obéi). Après une application, tous les états sont renvoyés (VSH ne transmet à Alexa que les changements).
 * **Etat de la connexion** : un nœud `status` de l'onglet généré renvoie l'état des nœuds VSH (en ligne, erreur...) vers la page Connexion, l'abonnement est lu par la route d'administration de VSH (`GET /admin/vsh-connection/<id>`).
 * **Import** d'un ancien export de flow VSH (pièces devinées depuis les noms, anciens topics traduits en entités DKNR) : utilisé pour la migration puis retiré (novembre 2026), la configuration est conservée par la sauvegarde.

@@ -85,7 +85,7 @@ L'état d'un appareil Alexa vient de sa première entité (`dknr/get/<source>/<p
 | Ouverture | binaire | ouvert si `1` (`0` pour l'unité `rb`) |
 | Mouvement | binaire | mouvement si `1` |
 | Température | nombre | °C, au dixième |
-| Volet | nombre (0-99 ou 0-100) ou binaire | pourcentage d'ouverture |
+| Volet | nombre (0-100) ou binaire | pourcentage d'ouverture |
 
 La dernière valeur des entités utilisées est conservée : après un redémarrage ou une mise à jour, les états sont renvoyés à Alexa sans attendre que chaque entité change, même pour les sources qui ne conservent pas leurs valeurs sur le serveur MQTT (ex : RFXCom).
 
@@ -95,8 +95,8 @@ Pour limiter le trafic (conditions d'utilisation de VSH), une température n'est
 
 Un ordre Alexa est publié sur `dknr/set/<source>/<parent>/<entité>` pour chaque entité de l'appareil :
 
-* Interrupteur : `1` / `0` pour une entité binaire. Pour un variateur (nombre), « allume » envoie `99` (sauf s'il est déjà allumé, son niveau est conservé) et « éteins » `0`.
-* Volet : le pourcentage demandé, `99` au plus (ouverture complète Z-Wave).
+* Interrupteur : `1` / `0` pour une entité binaire. Pour un variateur (nombre), « allume » envoie `100` (sauf s'il est déjà allumé, son niveau est conservé) et « éteins » `0`.
+* Volet : le pourcentage demandé (0 à 100).
 
 ### Node-RED
 
